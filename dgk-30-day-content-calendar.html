@@ -1,0 +1,328 @@
+<title>DGK Glow Calendar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Karla:wght@400;500;700&family=Playfair+Display:wght@500;600;700&display=swap">
+<style>
+/* Layout: one header, five week tabs, a stack of day cards; each card has IG / FB / Pinterest copy panels. */
+:root{
+  --plum:#5B2A5E; --gold:#D4AF37; --brown:#6B3F2A; --sand:#F5E9D6; --ivory:#FFF7EC;
+  --bg:#FFF7EC; --surface:#FFFDF8; --surface-2:#F5E9D6; --fg:#2E1A31; --muted:#6B4E5A;
+  --line:#E6D3B3; --accent:#5B2A5E; --accent-fg:#FFF7EC; --gold-ink:#8A6D0F;
+  --f-display:'Playfair Display',Georgia,serif; --f-body:'Karla',system-ui,sans-serif; --f-script:'Great Vibes','Snell Roundhand',cursive;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1D1120; --surface:#2A1A2E; --surface-2:#38233C; --fg:#F5E9D6; --muted:#C2ABBB;
+    --line:#4A3250; --accent:#D4AF37; --accent-fg:#1D1120; --gold-ink:#D4AF37; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1D1120; --surface:#2A1A2E; --surface-2:#38233C; --fg:#F5E9D6; --muted:#C2ABBB;
+  --line:#4A3250; --accent:#D4AF37; --accent-fg:#1D1120; --gold-ink:#D4AF37; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.55;
+  padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:820px;margin:0 auto}
+header{display:flex;flex-direction:column;gap:6px;padding-bottom:20px;border-bottom:2px solid var(--gold)}
+.sig{font-family:var(--f-script);font-size:2.1rem;color:var(--accent);line-height:1.1}
+.tag{font-size:.8rem;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);font-weight:700}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(1.7rem,5vw,2.4rem);line-height:1.15;margin:10px 0 0;text-wrap:balance}
+.sub{color:var(--muted);margin:2px 0 0;max-width:60ch}
+details.rules{margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px}
+details.rules summary{cursor:pointer;font-weight:700}
+details.rules ul{margin:10px 0 2px;padding-left:20px;display:grid;gap:6px}
+details.rules li{max-width:68ch}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding:18px 0 6px;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:inherit;font-weight:700;
+  padding:9px 14px;border-radius:999px;cursor:pointer;text-align:left;line-height:1.2}
+.tab small{display:block;font-weight:400;color:var(--muted);font-size:.75rem}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tab[aria-selected="true"] small{color:inherit;opacity:.85}
+.tab:focus-visible,.pt:focus-visible,.copy:focus-visible,summary:focus-visible,.cap:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.week-head{margin:22px 0 4px}
+.week-head h2{font-family:var(--f-display);font-weight:600;font-size:1.5rem;margin:0;text-wrap:balance}
+.week-head p{margin:4px 0 0;color:var(--muted);max-width:62ch}
+.days{display:grid;gap:16px;margin-top:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:12px;min-width:0}
+.card.rest{background:var(--surface-2);border-style:dashed}
+.top{display:flex;gap:14px;align-items:flex-start}
+.date{flex:0 0 auto;min-width:56px;text-align:center;border-right:2px solid var(--gold);padding-right:14px}
+.date b{display:block;font-family:var(--f-display);font-size:1.6rem;line-height:1}
+.date span{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.meta{min-width:0;display:grid;gap:4px}
+.chip{justify-self:start;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--gold-ink);border:1px solid var(--gold);border-radius:4px;padding:2px 8px}
+.vis{font-family:var(--f-display);font-weight:600;font-size:1.15rem;line-height:1.25;text-wrap:balance}
+.vis em{display:block;font-family:var(--f-body);font-style:normal;font-weight:400;font-size:.9rem;color:var(--muted)}
+.note{font-size:.88rem;color:var(--muted);background:var(--bg);border-radius:8px;padding:8px 12px;margin:0}
+.pts{display:flex;gap:6px;flex-wrap:wrap}
+.pt{font:inherit;font-size:.85rem;font-weight:700;background:transparent;color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:5px 12px;cursor:pointer}
+.pt[aria-selected="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.panel{display:grid;gap:8px;min-width:0}
+.cap{white-space:pre-wrap;overflow-wrap:anywhere;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:.95rem}
+.pinmeta{font-size:.82rem;color:var(--muted)}
+.pintitle{font-family:var(--f-display);font-weight:600}
+.copy{justify-self:start;font:inherit;font-weight:700;font-size:.85rem;background:var(--accent);color:var(--accent-fg);border:0;border-radius:6px;padding:7px 14px;cursor:pointer}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:.85rem}
+footer .sig{font-size:1.5rem}
+@media (max-width:480px){.top{gap:10px}.date{padding-right:10px}}
+@media (prefers-reduced-motion:no-preference){.tab,.pt,.copy{transition:background .15s,color .15s}}
+</style>
+
+<div class="wrap">
+<header>
+  <span class="sig">DivaglamKreation</span>
+  <span class="tag">Faith. Flow. Flourish. <span style="color:var(--gold)">&#9829;</span></span>
+  <h1>30 Days of Glow</h1>
+  <p class="sub">Mon Nov 9 to Tue Dec 8, 2026. Weekdays carry a full post for Instagram, Facebook and Pinterest. Weekends are rest days with one gentle story.</p>
+  <details class="rules">
+    <summary>Brand checks built into this calendar</summary>
+    <ul>
+      <li>Every post traces back to Who are you? &rarr; Glow Owl &rarr; Every woman matters. Rest &middot; Reset &middot; Renewal sets the week themes.</li>
+      <li>No countdowns, no urgency, no hustle language. Black Friday week is a gentle gift post with no sale claim.</li>
+      <li>Public graphics carry the DK monogram only, bottom-right. On-image headlines are 2 to 4 words (the title-card series is the one exception).</li>
+      <li>Keep the founder owl canvas photo ("know HOO you are") exactly as it is. No redraw, regenerate or crop.</li>
+      <li>First-person lines (marked in each card's note) are drafts. Swap in your real moments before posting. Nothing here claims a result or testimonial.</li>
+      <li>Prices: The Gentle Reset 7-Day Guided Journal $9.99 Amazon / $7 Gumroad digital. Reflections: RESET &middot; RENEWAL hardcover $29.99 Amazon. Free 3-Day Mini Reset. Confirm before posting.</li>
+    </ul>
+  </details>
+</header>
+
+<div class="tabs" role="tablist" id="weekTabs" aria-label="Weeks"></div>
+<section id="weekBody" aria-live="polite"></section>
+
+<footer>
+  <span class="sig">Every woman matters.</span>
+  <p>Humanize pass applied: shorter lines, plain talk, faith woven in lightly. Read each caption aloud once and change anything that doesn't sound like you.</p>
+</footer>
+</div>
+
+<script>
+var WEEKS = [
+{ id:'w1', label:'Week 1', range:'Nov 9 to 15', theme:'Rest', set:'Permission to Pause',
+  intro:'Teach the first small pause. Everything this week says rest is allowed.',
+  days:[
+  { date:9, dow:'Mon', fmt:'Gentle Guidance · Carousel', vis:['Permission to Pause','Rest is allowed here.'],
+    note:'Five slides: the moment, the gentle truth, one small practice, reflection, soft CTA. Cream textured background, serif headline.',
+    ig:'Nobody told you rest was allowed before the list was done. So I will say it, woman to woman: you may pause.\n\nTry this today. One slow minute with your coffee before you touch your phone. No planning, no fixing. Just a warm cup and a quiet breath.\n\nWhere could your minute fit this week? Tell me below. You matter, even on the days you checked nothing off.\n\n#PermissionToPause #FaithFlowFlourish #GentleMornings',
+    fb:'Can I tell you something I wish someone had told me sooner? You are allowed to pause before the to-do list is finished.\n\nToday\'s small practice: take one slow minute with your coffee before you pick up your phone. Nothing to fix and nothing to plan. Just the warm cup and a quiet breath.\n\nIf your mind drifts to the dishes, that is okay. Come back gently. God is not keeping score of how much you got done.\n\nWhere could your one minute fit this week? I would love to hear. Every woman matters, and that includes you.',
+    pin:{board:'Slow Morning Rituals', title:'Permission to Pause: A One-Minute Morning Ritual', desc:'A gentle one-minute coffee ritual for mornings that start with rest instead of rush. Save this for your slowest days. divaglamkreation.com'} },
+  { date:10, dow:'Tue', fmt:'Reel · Real Talk', vis:['Rest Isn\'t Lazy','Say it out loud.'],
+    note:'Talk to camera, 30 to 40 seconds. Beats: the old belief, the small start, the permission line. First-person details are placeholders for your true story.',
+    ig:'I used to think rest was what you got after everything was done. Nothing is ever all the way done.\n\nSo I started small. Ten minutes, a chair, a cup, my journal. Some days I cried. Some days I stared at the wall. Both counted.\n\nIf you are tired in a way sleep does not fix, this one is for you. Send it to a woman who needs the permission slip.\n\n#RestIsHoly #PermissionToPause',
+    fb:'Real talk for a Tuesday. I used to believe rest was a reward for finishing everything. Except nothing ever finishes.\n\nSo I started with ten minutes and a cup of coffee. Some days I did nothing but stare at the wall, and that counted.\n\nIf you are tired in a way sleep does not touch, hear this: you are allowed to stop. Share this with a friend who needs the permission slip.',
+    pin:{board:'Slow Morning Rituals', title:'Rest Is Not Lazy: A Gentle Reminder for Tired Women', desc:'If you are tired in a way sleep does not fix, give yourself ten gentle minutes. Save this reminder for the hard days.'} },
+  { date:11, dow:'Wed', fmt:'Dear Morning · Reel', vis:['Dear Morning','Today\'s word: Gentle'],
+    note:'Parisienne for "Dear Morning" and the closing line, Playfair Display for the daily word. Add the afternoon word as a second frame.',
+    ig:'Dear Morning,\n\nToday\'s word is GENTLE. Gentle with the way you wake up. Gentle with the voice in your head. Gentle with the pace you keep.\n\nWatching this later in the day? Your word is ENOUGH. What you gave today was enough.\n\nEvery woman matters.\n\n#DearMorning #LifeWithCoffee',
+    fb:'Dear Morning,\n\nToday\'s word is GENTLE. Gentle with how you wake up, with the voice in your head, with the pace you keep.\n\nIf you are reading this later in the day, your word is ENOUGH. What you gave today was enough.\n\nEvery woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'Dear Morning: A Gentle Word for Your Day', desc:'A short morning encouragement for the woman who needs to hear she is enough. Save it for slow mornings.'} },
+  { date:12, dow:'Thu', fmt:'Life With Coffee · Reel', vis:['First Sip','A small holy pause.'],
+    note:'Use real coffee-ritual footage: steam, window light, hands around the cup. Text overlay only, quiet-luxury mood.',
+    ig:'The first sip is my quiet. Steam. Window light. A house that is not asking anything of me yet.\n\nSome women pray here. Some journal. Some just breathe. All of it is holy.\n\nWhat does your first sip feel like?\n\n#LifeWithCoffee #SlowMorning',
+    fb:'The first sip of coffee is my quiet. Steam, window light, a house that is not asking anything of me yet.\n\nSome women pray in that moment. Some journal. Some just breathe. All of it counts as holy.\n\nWhat does your first sip feel like? Tell me about your morning ritual below.',
+    pin:{board:'Slow Morning Rituals', title:'A Slow Coffee Morning Ritual for Quiet and Prayer', desc:'The first sip as a small holy pause. A slow morning ritual for women who need a gentle start.'} },
+  { date:13, dow:'Fri', fmt:'Why You Keep Quitting · Carousel', vis:['Why You Keep Quitting Journaling','Start with one line.'],
+    note:'Set 3 title-card series. Slides: title card, the real reason, the one-line starter, soft CTA to the free 3-Day Mini Reset.',
+    ig:'You keep quitting journaling because you started with a blank page and big expectations. Nobody can show up for that every day.\n\nStart with one line. "Today I felt ___." That is the whole entry.\n\nI made a free 3-Day Mini Reset for exactly this. Gentle prompts, no streaks, no pressure. Link in bio when you are ready.\n\nYou did not fail. You needed a softer way in.\n\n#GentleJournaling #FaithFlowFlourish',
+    fb:'Why do so many of us quit journaling? We start with a blank page and a big promise to ourselves. Nobody can keep that up.\n\nTry one line. "Today I felt ___." That is the whole entry.\n\nI made a free 3-Day Mini Reset for exactly this, with gentle prompts and no streaks. You can find it through the link in my bio. You did not fail. You just needed a softer way in.',
+    pin:{board:'Gentle Journaling Prompts', title:'Why You Keep Quitting Journaling (and a Softer Way to Start)', desc:'Start with one line instead of a blank page. A free 3-Day Mini Reset for women who want gentle journaling. divaglamkreation.com'} },
+  { date:14, dow:'Sat', rest:true, fmt:'Story · Dear Morning', vis:['Saturday, slowly','Story only.'],
+    ig:'Story text: "Today I am slowing down by ____." Add a fill-in-the-blank sticker. Reshare two or three replies.' },
+  { date:15, dow:'Sun', rest:true, fmt:'Story · Sunday Reset', vis:['Sunday Reset','Story only.'],
+    ig:'Story text: "One thing to set down before Monday." Add a quiet photo of your coffee or journal. Close with: Every woman matters.' }
+  ]},
+
+{ id:'w2', label:'Week 2', range:'Nov 16 to 22', theme:'Reset', set:'The Gentle Reset',
+  intro:'Show what a soft reset looks like. This week introduces the 7-Day Guided Journal.',
+  days:[
+  { date:16, dow:'Mon', fmt:'Gentle Guidance · Carousel', vis:['Sunday Reset','Five soft steps.'],
+    note:'Make the checklist the hero slide so it saves well on Pinterest. Cream textured background, serif headline, small monogram, visible URL.',
+    ig:'A reset does not have to mean a deep clean and a color-coded planner.\n\nHere is the soft version.\n1. Clear one surface.\n2. Write what is on your heart, not only your calendar.\n3. Pick one thing for tomorrow.\n4. Pray or breathe for two minutes.\n5. Set out tomorrow\'s coffee cup.\n\nSave this for Sunday evening. Which step would help you most?\n\n#SundayReset #SlowMorningRituals',
+    fb:'A reset does not have to mean a deep clean and a color-coded planner. Here is the soft version.\n\n1. Clear one surface.\n2. Write what is on your heart, not only your calendar.\n3. Pick one thing for tomorrow.\n4. Pray or breathe for two minutes.\n5. Set out tomorrow\'s coffee cup.\n\nWhich step would help you most this week? Every woman matters, and so does your Sunday evening.',
+    pin:{board:'Slow Morning Rituals', title:'Sunday Reset Checklist: 5 Gentle Steps', desc:'A soft Sunday reset checklist you can finish in twenty minutes. Save it for Sunday evening. divaglamkreation.com'} },
+  { date:17, dow:'Tue', fmt:'Reel · Real Talk', vis:['Messy Reset Counts','Still a reset.'],
+    note:'Talk to camera. Share one real moment when your reset was messy. The line below is a placeholder for your story.',
+    ig:'My reset last week was a mess. I skipped two days. The journal sat there looking at me.\n\nSo on day three I opened it, wrote one sentence, and called it done. That was my reset.\n\nIf you fell off, you did not ruin it. Start where you are, with whatever you have.\n\nEvery woman matters, even on a Tuesday when nothing went to plan.\n\n#GentleReset #StartAgain',
+    fb:'Confession: my reset last week was a mess. I skipped two days and the journal just sat there.\n\nOn day three I wrote one sentence and called it done. That counted.\n\nIf you fell off the wagon of whatever you were trying, nothing is ruined. Start where you are. Every woman matters, messy weeks included.',
+    pin:{board:'Gentle Journaling Prompts', title:'Messy Reset? You Can Still Start Again Today', desc:'A gentle reminder that a reset does not have to be perfect. One sentence is enough to begin again.'} },
+  { date:18, dow:'Wed', fmt:'Dear Morning · Reel', vis:['Dear Morning','Today\'s word: Begin'],
+    note:'Same Dear Morning layout as last Wednesday. Afternoon word: Soften.',
+    ig:'Dear Morning,\n\nToday\'s word is BEGIN. Not the whole plan. Just the next small thing.\n\nWatching this later? Your word is SOFTEN. Unclench your shoulders. Loosen your jaw. You are safe to rest now.\n\nEvery woman matters.\n\n#DearMorning #LifeWithCoffee',
+    fb:'Dear Morning,\n\nToday\'s word is BEGIN. Not the whole plan. Just the next small thing.\n\nIf it is afternoon where you are, your word is SOFTEN. Loosen your shoulders and your jaw. You are safe to rest.\n\nEvery woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'Dear Morning: Begin With the Next Small Thing', desc:'A short morning encouragement for starting small. Save for the days you do not know where to begin.'} },
+  { date:19, dow:'Thu', fmt:'Life With Coffee · Reel', vis:['Seven Quiet Days','One page at a time.'],
+    note:'Footage of the journal open beside a coffee cup. Show a real page. Remember: AI-edited product photos are mockups, so use a real product photo.',
+    ig:'Seven days. One page each morning. A cup of coffee and ten honest minutes.\n\nThat is the whole idea behind The Gentle Reset 7-Day Guided Journal. It is $9.99 as a paperback on Amazon, or $7 as a digital download on Gumroad.\n\nIf you are not ready to buy, start with the free 3-Day Mini Reset. Links in bio.\n\n#TheGentleReset #LifeWithCoffee',
+    fb:'Seven days. One page each morning. A cup of coffee and ten honest minutes.\n\nThat is the idea behind The Gentle Reset 7-Day Guided Journal. It is $9.99 as a paperback on Amazon, or $7 as a digital download on Gumroad.\n\nNot ready yet? The free 3-Day Mini Reset is a soft place to start. Links are in my bio, whenever you want them.',
+    pin:{board:'Gentle Journaling Prompts', title:'7-Day Guided Journal for a Gentle Morning Reset', desc:'Seven mornings, one page each, a cup of coffee. The Gentle Reset guided journal from DivaglamKreation. divaglamkreation.com'} },
+  { date:20, dow:'Fri', fmt:'Why You Keep Quitting · Carousel', vis:['Why You Keep Quitting Resting','It feels like falling behind.'],
+    note:'Set 3 title-card series. Slides: title card, the real reason, a reframe, one small practice.',
+    ig:'You keep quitting rest because it feels like falling behind. Everyone else seems to be running, and you are sitting down with a cup of coffee.\n\nHere is a quieter truth. The woman who rests is the woman who can keep going tomorrow.\n\nTonight, choose one thing to leave undone. Write it on a sticky note. Then go to bed.\n\nWhat are you leaving undone? You matter more than the list.\n\n#RestIsHoly #PermissionToPause',
+    fb:'Why is rest so hard to keep? Because it feels like falling behind. Everyone else seems to be running.\n\nBut the woman who rests is the woman who can keep going tomorrow.\n\nTonight, pick one thing to leave undone. Write it on a sticky note and go to bed. What are you leaving undone? You matter more than the list.',
+    pin:{board:'Slow Morning Rituals', title:'Why You Keep Quitting Rest (And How to Keep It)', desc:'Rest feels like falling behind, but it is how you keep going. One small practice for tonight.'} },
+  { date:21, dow:'Sat', rest:true, fmt:'Story · Poll', vis:['Slow Saturday','Story only.'],
+    ig:'Story text: "Morning person or slow starter?" Add a two-option poll. Follow up with a Dear Morning frame: "Either way, you matter."' },
+  { date:22, dow:'Sun', rest:true, fmt:'Story · Sunday Reset', vis:['Sunday Reset','Story only.'],
+    ig:'Story text: "Name one thing you are carrying into the week. Then hand it over." Invite replies. Close with: Every woman matters.' }
+  ]},
+
+{ id:'w3', label:'Week 3', range:'Nov 23 to 29', theme:'Renewal', set:'Gratitude and Gifting',
+  intro:'Thanksgiving week. Gratitude without pressure, the Glow Owl, and a gentle gift post. No sale language.',
+  days:[
+  { date:23, dow:'Mon', fmt:'Gentle Guidance · Carousel', vis:['Thankful, Gently','No pressure to feel it.'],
+    note:'Faith connection: 1 Thessalonians 5:18 (NIV). Keep it quiet; do not make it a lecture.',
+    ig:'Gratitude is lovely until someone tells you to feel it on command.\n\nHere is a gentler way. At the end of today, write down one thing that held you up. A text from a friend. A hot shower. A moment of quiet in the car.\n\nYou do not have to pretend the hard parts were easy. "Give thanks in all circumstances" (1 Thessalonians 5:18) is an invitation to notice God in the middle of them.\n\nWhat held you up today? You matter.\n\n#GentleGratitude #FaithFlowFlourish',
+    fb:'Gratitude is lovely until someone tells you to feel it on command.\n\nTry this instead. At the end of the day, write down one thing that held you up. A kind text. A hot shower. A quiet moment in the car.\n\nYou do not have to pretend the hard parts were easy. "Give thanks in all circumstances" (1 Thessalonians 5:18) is an invitation to notice God in the middle of them.\n\nWhat held you up today? Every woman matters.',
+    pin:{board:'Gentle Journaling Prompts', title:'Gentle Gratitude Journaling: One Thing That Held You Up', desc:'A pressure-free gratitude practice for hard weeks. One line, one honest thing. Save for Thanksgiving week.'} },
+  { date:24, dow:'Tue', fmt:'Glow Owl · Carousel', vis:['Know HOO You Are','Who are you, really?'],
+    note:'Use the original founder owl canvas photo as is. No redrawing, regenerating or cropping. Slides: Who are you? then Glow Owl, then Every woman matters.',
+    ig:'Before the titles. Before the to-do list. Before anyone was looking. Who are you?\n\nMeet the Glow Owl. She has been reminding me for a while now: you are known, you are loved, you matter.\n\nGrab your journal and answer this one. Who am I when nobody is asking me for anything?\n\nYou mattered before anyone was looking.\n\n#GlowOwl #KnowHOOYouAre #EveryWomanMatters',
+    fb:'Before the titles. Before the to-do list. Before anyone was looking. Who are you?\n\nMeet the Glow Owl. She is our little reminder that you are known, you are loved, you matter.\n\nTry this in your journal: Who am I when nobody is asking me for anything?\n\nYou mattered before anyone was looking.',
+    pin:{board:'Gentle Journaling Prompts', title:'Know HOO You Are: A Journaling Prompt for Women', desc:'Who are you when nobody is asking anything of you? A gentle identity prompt from the Glow Owl. divaglamkreation.com'} },
+  { date:25, dow:'Wed', fmt:'Dear Morning · Reel', vis:['Dear Morning','Today\'s word: Thankful'],
+    note:'Afternoon word: Held.',
+    ig:'Dear Morning,\n\nToday\'s word is THANKFUL. For the small stuff. The mug that is your favorite. The sound of someone else laughing in the next room.\n\nWatching this later? Your word is HELD. You have been carried farther than you remember.\n\nEvery woman matters.\n\n#DearMorning #LifeWithCoffee',
+    fb:'Dear Morning,\n\nToday\'s word is THANKFUL. For the small stuff: your favorite mug, someone laughing in the next room.\n\nIf you are reading this later, your word is HELD. You have been carried farther than you remember.\n\nEvery woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'Dear Morning: Thankful and Held', desc:'A short thankfulness reminder for Thanksgiving week. Save it for a slow morning.'} },
+  { date:26, dow:'Thu', fmt:'Life With Coffee · Reel', vis:['Quiet Gratitude','Thanksgiving morning.'],
+    note:'Thanksgiving Day. No selling and no link. Real footage of a quiet morning before the day begins.',
+    ig:'Before the table is set and the house gets loud, here is my quiet cup.\n\nWhatever your day looks like, full or empty, loud or still, I hope someone saves you a seat. And if no one does, you have one right here.\n\nHappy Thanksgiving. You matter.\n\n#LifeWithCoffee #Thanksgiving',
+    fb:'Before the table is set and the house gets loud, here is my quiet cup of coffee.\n\nWhatever your day looks like, full or empty, loud or still, I hope someone saves you a seat. And if no one does, there is one here.\n\nHappy Thanksgiving. Every woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'A Quiet Thanksgiving Morning With Coffee', desc:'A slow, quiet gratitude moment before the day begins. Save for next year\'s Thanksgiving morning.'} },
+  { date:27, dow:'Fri', fmt:'Gift Post · Carousel', vis:['A Gift of Rest','For her. For you.'],
+    note:'No sale claim, no countdown, no urgency. Ritual first, products second. Use real product photos. Slides: the woman running on empty, the journal, the hardcover, soft CTA.',
+    ig:'Gifting, gently. If there is a woman in your life running on empty, you can give her a reason to sit down.\n\nThe Gentle Reset 7-Day Guided Journal is a soft way in. $9.99 on Amazon, or $7 as a digital download on Gumroad.\n\nReflections: RESET · RENEWAL is the hardcover for the woman ready to stay a while. $29.99 on Amazon.\n\nNo rush. Links in bio whenever it feels right. And if the gift is for you? That counts too.\n\n#GiftOfRest #FaithFlowFlourish',
+    fb:'Gifting, gently. If there is a woman in your life running on empty, you can give her a reason to sit down.\n\nThe Gentle Reset 7-Day Guided Journal is a soft place to begin. It is $9.99 on Amazon, or $7 as a digital download on Gumroad.\n\nReflections: RESET · RENEWAL is the hardcover for the woman who is ready to stay a while. $29.99 on Amazon.\n\nNo rush, no pressure. The links are in my bio whenever it feels right. If the gift is for you, that counts too.',
+    pin:{board:'Gentle Journaling Prompts', title:'Gift Ideas for a Tired Woman: A Gentle Reset Journal', desc:'A thoughtful gift for the woman who gives everything. Guided journals for rest and renewal. divaglamkreation.com'} },
+  { date:28, dow:'Sat', rest:true, fmt:'Story · Thank You', vis:['Small Shop Saturday','Story only.'],
+    ig:'Story text: "Thank you for supporting a small shop. You make this possible." Behind-the-scenes photo of packaging or your desk. No offer, no link.' },
+  { date:29, dow:'Sun', rest:true, fmt:'Story · Sunday Reset', vis:['Sunday Reset','Story only.'],
+    ig:'Story text: "What are you grateful you did not rush this week?" Invite replies. Close with: Every woman matters.' }
+  ]},
+
+{ id:'w4', label:'Week 4', range:'Nov 30 to Dec 6', theme:'Release', set:'Release',
+  intro:'Let go of the perfect December. This week uses the Release set.',
+  days:[
+  { date:30, dow:'Mon', fmt:'Gentle Guidance · Carousel', vis:['What You\'re Carrying','Set it down, gently.'],
+    note:'Faith connection: Matthew 11:28 (NIV). Slides: the weight, the gentle truth, the practice, the verse, soft CTA.',
+    ig:'December gets heavy fast. Gifts, gatherings, expectations, the year-end pile of everything you meant to do.\n\nTry this. Write down what you are carrying on a sheet of paper. All of it. Then write one line at the bottom: "I am allowed to set this down."\n\n"Come to me, all you who are weary and burdened, and I will give you rest" (Matthew 11:28).\n\nWhat is the first thing you are setting down? You matter.\n\n#ReleaseSet #FaithFlowFlourish',
+    fb:'December gets heavy fast. Gifts, gatherings, expectations, and the year-end pile of everything you meant to do.\n\nTry this. Write down what you are carrying, all of it. Then write one line at the bottom: "I am allowed to set this down."\n\n"Come to me, all you who are weary and burdened, and I will give you rest" (Matthew 11:28).\n\nWhat is the first thing you are setting down? Every woman matters.',
+    pin:{board:'Gentle Journaling Prompts', title:'A Release Journaling Prompt: What Are You Carrying?', desc:'Write down what you are carrying, then give yourself permission to set it down. A gentle December practice.'} },
+  { date:1, dow:'Tue', fmt:'Reel · Real Talk', vis:['No Perfect December','Say it with me.'],
+    note:'Talk to camera, 30 seconds. The details below are placeholders. Swap in what is actually true for you this season.',
+    ig:'The perfect December does not exist. I have looked.\n\nThe tree will lean. Someone will forget something. The cookies will burn, and that is okay.\n\nThis year I am choosing one tradition that fills me up, and letting the rest go. What is yours?\n\nYou are not behind. You matter, burnt cookies and all.\n\n#ReleaseSet #SlowDecember',
+    fb:'The perfect December does not exist. I have looked.\n\nThe tree will lean. Someone will forget something. The cookies will burn, and that is okay.\n\nThis year I am choosing one tradition that fills me up and letting the rest go. What is yours? You are not behind. Every woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'A Slow December: Permission to Skip the Perfect Holiday', desc:'Choose one tradition that fills you up and let the rest go. A gentle holiday reminder for tired women.'} },
+  { date:2, dow:'Wed', fmt:'Dear Morning · Reel', vis:['Dear Morning','Today\'s word: Release'],
+    note:'Afternoon word: Rest.',
+    ig:'Dear Morning,\n\nToday\'s word is RELEASE. The comparison. The guilt about what you did not get to. The conversation you keep replaying.\n\nWatching this later? Your word is REST. You already did enough today.\n\nEvery woman matters.\n\n#DearMorning #LifeWithCoffee',
+    fb:'Dear Morning,\n\nToday\'s word is RELEASE. The comparison, the guilt about what you did not get to, the conversation you keep replaying.\n\nIf it is later in the day, your word is REST. You did enough today.\n\nEvery woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'Dear Morning: Release and Rest', desc:'A short encouragement for letting go of what you cannot carry. Save it for a heavy morning.'} },
+  { date:3, dow:'Thu', fmt:'Life With Coffee · Reel', vis:['December Mornings','Candlelight and coffee.'],
+    note:'Footage of a candle, coffee and early light. No voiceover. Quiet-luxury mood.',
+    ig:'December mornings are my favorite kind of slow. A candle. Coffee. The dark just starting to lift.\n\nI used to rush through this season. Now I sit with the quiet first and let the day find me.\n\nWhat is your December ritual?\n\n#LifeWithCoffee #SlowDecember',
+    fb:'December mornings are my favorite kind of slow. A candle, a cup of coffee, and the dark just starting to lift.\n\nI used to rush through this season. Now I sit with the quiet first and let the day find me.\n\nWhat is your December morning ritual?',
+    pin:{board:'Slow Morning Rituals', title:'Slow December Morning Ritual: Candlelight and Coffee', desc:'A cozy slow morning ritual for the holiday season. Save it for the quiet before the busy.'} },
+  { date:4, dow:'Fri', fmt:'Why You Keep Quitting · Carousel', vis:['Why You Keep Starting Over','Missed days aren\'t failure.'],
+    note:'Set 3 title-card series. Slides: title card, the real reason, the reframe, one small practice.',
+    ig:'You keep starting over because every missed day feels like proof that you failed.\n\nIt is not proof. It is just a missed day.\n\nHere is the practice. When you come back, skip the catch-up. Write today\'s date and one sentence. That is your restart.\n\nYou have been starting over for a long time. That means you keep coming back. That is not failure, that is faith.\n\n#GentleReset #StartAgain',
+    fb:'Why do we keep starting over? Because every missed day feels like proof we failed. It is not proof. It is just a missed day.\n\nWhen you come back, skip the catch-up. Write today\'s date and one sentence. That is your restart.\n\nYou keep coming back, and that counts. Every woman matters.',
+    pin:{board:'Gentle Journaling Prompts', title:'Why You Keep Starting Over (and How to Restart Gently)', desc:'Missed days are not failure. A gentle restart practice for journaling and rest. divaglamkreation.com'} },
+  { date:5, dow:'Sat', rest:true, fmt:'Story · Q&A', vis:['Saturday Q&A','Story only.'],
+    ig:'Story text: "What would you like gentle guidance on in the new year?" Add a question box. Save the answers to shape January.' },
+  { date:6, dow:'Sun', rest:true, fmt:'Story · Sunday Reset', vis:['Sunday Reset','Story only.'],
+    ig:'Story text: "What did you release this week?" Add a quiet photo. Close with: Every woman matters.' }
+  ]},
+
+{ id:'w5', label:'Wrap-up', range:'Dec 7 to 8', theme:'Glow', set:'Closing the Month',
+  intro:'Two posts to close the month and invite readers into the Glowlist.',
+  days:[
+  { date:7, dow:'Mon', fmt:'Gentle Guidance · Carousel', vis:['Close the Year Softly','Three gentle questions.'],
+    note:'Soft CTA to Reflections: RESET · RENEWAL ($29.99, Amazon). No countdown, no pressure.',
+    ig:'You do not need a perfect year-end review. Three gentle questions will do.\n\n1. Where did I feel most like myself this year?\n2. What did I carry that I can now release?\n3. What does renewal look like for me next?\n\nIf you want room to stay with these, Reflections: RESET · RENEWAL is a hardcover journal made for exactly this ($29.99 on Amazon). Link in bio whenever you are ready.\n\nYou mattered every day of this year.\n\n#Reflections #FaithFlowFlourish',
+    fb:'You do not need a perfect year-end review. Three gentle questions will do.\n\n1. Where did I feel most like myself this year?\n2. What did I carry that I can now release?\n3. What does renewal look like for me next?\n\nIf you want room to stay with these, Reflections: RESET · RENEWAL is a hardcover journal made for this ($29.99 on Amazon). The link is in my bio whenever you are ready. You mattered every day of this year.',
+    pin:{board:'Gentle Journaling Prompts', title:'3 Gentle Year-End Reflection Questions for Women', desc:'Close the year softly with three journaling questions about release and renewal. divaglamkreation.com'} },
+  { date:8, dow:'Tue', fmt:'Dear Morning · Reel', vis:['Dear Morning','Today\'s word: Glow'],
+    note:'Final post of the 30 days. Soft invite to the Glowlist newsletter (divaglamkreation.myflodesk.com). Afternoon word: Enough.',
+    ig:'Dear Morning,\n\nToday\'s word is GLOW. Not the performing kind. The kind that comes when you finally stop and let yourself be loved.\n\nWatching this later? Your word is ENOUGH. Still true.\n\nIf you want gentle notes like this in your inbox, the Glowlist is open. Link in bio.\n\nEvery woman matters.\n\n#DearMorning #Glowlist',
+    fb:'Dear Morning,\n\nToday\'s word is GLOW. Not the performing kind, but the kind that comes when you stop and let yourself be loved.\n\nIf it is later in the day, your word is ENOUGH. Still true.\n\nWant gentle notes like this in your inbox? The Glowlist is open. The link is in my bio. Every woman matters.',
+    pin:{board:'Slow Morning Rituals', title:'Dear Morning: Today\'s Word Is Glow', desc:'A gentle encouragement to close the month. Join the Glowlist for more at divaglamkreation.com'} }
+  ]}
+];
+
+var $ = function(s){return document.querySelector(s)};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function copyText(text, btn){
+  var label = btn.dataset.label || btn.textContent;
+  btn.dataset.label = label;
+  function done(msg){ btn.textContent = msg; setTimeout(function(){ btn.textContent = label; }, 1600); }
+  function fallback(){
+    var cap = btn.parentElement.querySelector('.cap');
+    if (cap){ var r = document.createRange(); r.selectNodeContents(cap); var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); }
+    done('Selected, press copy');
+  }
+  try { navigator.clipboard.writeText(text).then(function(){ done('Copied'); }, fallback); } catch(e){ fallback(); }
+}
+
+function cardHTML(d, wi, di){
+  var id = 'c' + wi + '-' + di;
+  var head = '<div class="top"><div class="date"><b>' + d.date + '</b><span>' + d.dow + '</span></div>' +
+    '<div class="meta"><span class="chip">' + esc(d.fmt) + '</span>' +
+    '<div class="vis">' + esc(d.vis[0]) + '<em>' + esc(d.vis[1]) + '</em></div></div></div>';
+  if (d.rest){
+    return '<article class="card rest">' + head + '<div class="panel"><div class="cap" id="' + id + '-ig" tabindex="0">' + esc(d.ig) + '</div></div></article>';
+  }
+  var note = d.note ? '<p class="note">' + esc(d.note) + '</p>' : '';
+  var tabs = '<div class="pts" role="tablist" aria-label="Platform">' +
+    ['ig','fb','pin'].map(function(k,i){
+      var n = k === 'ig' ? 'Instagram' : k === 'fb' ? 'Facebook' : 'Pinterest';
+      return '<button class="pt" role="tab" data-card="' + id + '" data-k="' + k + '" aria-selected="' + (i===0) + '">' + n + '</button>';
+    }).join('') + '</div>';
+  var panels =
+    '<div class="panel" data-p="' + id + '-ig"><div class="cap" tabindex="0">' + esc(d.ig) + '</div><button class="copy" data-copy="' + id + '-ig">Copy caption</button></div>' +
+    '<div class="panel" data-p="' + id + '-fb" hidden><div class="cap" tabindex="0">' + esc(d.fb) + '</div><button class="copy" data-copy="' + id + '-fb">Copy caption</button></div>' +
+    '<div class="panel" data-p="' + id + '-pin" hidden><div class="pinmeta">Board: ' + esc(d.pin.board) + '</div><div class="cap" tabindex="0"><span class="pintitle">' + esc(d.pin.title) + '</span>\n\n' + esc(d.pin.desc) + '</div><button class="copy" data-copy="' + id + '-pin">Copy title and description</button></div>';
+  return '<article class="card">' + head + note + tabs + panels + '</article>';
+}
+
+var texts = {};
+WEEKS.forEach(function(w, wi){
+  w.days.forEach(function(d, di){
+    var id = 'c' + wi + '-' + di;
+    texts[id + '-ig'] = d.ig;
+    if (!d.rest){ texts[id + '-fb'] = d.fb; texts[id + '-pin'] = d.pin.title + '\n\n' + d.pin.desc; }
+  });
+});
+
+function showWeek(wi){
+  var w = WEEKS[wi];
+  document.querySelectorAll('.tab').forEach(function(t, i){ t.setAttribute('aria-selected', String(i === wi)); });
+  $('#weekBody').innerHTML =
+    '<div class="week-head"><h2>' + esc(w.label) + ': ' + esc(w.theme) + '</h2><p>' + esc(w.set) + '. ' + esc(w.intro) + '</p></div>' +
+    '<div class="days">' + w.days.map(function(d, di){ return cardHTML(d, wi, di); }).join('') + '</div>';
+  try { localStorage.setItem('dgkWeek', String(wi)); } catch(e){}
+}
+
+$('#weekTabs').innerHTML = WEEKS.map(function(w, i){
+  return '<button class="tab" role="tab" data-w="' + i + '" aria-selected="false">' + esc(w.label) + '<small>' + esc(w.range) + '</small></button>';
+}).join('');
+
+document.addEventListener('click', function(e){
+  var t = e.target.closest('.tab');
+  if (t){ showWeek(+t.dataset.w); return; }
+  var p = e.target.closest('.pt');
+  if (p){
+    var card = p.closest('.card');
+    card.querySelectorAll('.pt').forEach(function(b){ b.setAttribute('aria-selected', String(b === p)); });
+    card.querySelectorAll('.panel').forEach(function(pn){ pn.hidden = pn.dataset.p !== p.dataset.card + '-' + p.dataset.k; });
+    return;
+  }
+  var c = e.target.closest('.copy');
+  if (c){ copyText(texts[c.dataset.copy], c); }
+});
+
+var start = 0;
+try { var s = parseInt(localStorage.getItem('dgkWeek'), 10); if (s >= 0 && s < WEEKS.length) start = s; } catch(e){}
+showWeek(start);
+</script>
